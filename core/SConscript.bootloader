@@ -109,6 +109,10 @@ SOURCE_TREZORHAL = [
     'embed/trezorhal/vectortable.s',
 ]
 
+if TREZOR_MODEL in ['1', 'R']:
+    SOURCE_TREZORHAL.append('embed/trezorhal/button.c')
+
+
 env = Environment(ENV=os.environ, CFLAGS='%s -DPRODUCTION=%s' % (ARGUMENTS.get('CFLAGS', ''), ARGUMENTS.get('PRODUCTION', '0')))
 
 env.Replace(
