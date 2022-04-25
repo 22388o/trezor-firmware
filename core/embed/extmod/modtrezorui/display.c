@@ -119,6 +119,8 @@ static struct { int x, y; } DISPLAY_OFFSET;
 #include "display-stm32_T.h"
 #elif defined TREZOR_MODEL_1 || defined TREZOR_MODEL_R
 #include "display-stm32_1.h"
+#elif defined TREZOR_MODEL_R
+#include "display-stm32_R.h"
 #else
 #error Unknown Trezor model
 #endif
