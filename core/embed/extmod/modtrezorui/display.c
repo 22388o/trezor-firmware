@@ -368,10 +368,10 @@ void display_icon(int x, int y, int w, int h, const void *data,
   int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
   clamp_coords(x, y, w, h, &x0, &y0, &x1, &y1);
   display_set_window(x0, y0, x1, y1);
-  x0 -= x;
-  x1 -= x;
-  y0 -= y;
-  y1 -= y;
+  x0 -= MAX(x, 0);
+  x1 -= MAX(x, 0);
+  y0 -= MAX(y, 0);
+  y1 -= MAX(y, 0);
 
   uint16_t colortable[16] = {0};
   set_color_table(colortable, fgcolor, bgcolor);
@@ -386,8 +386,8 @@ void display_icon(int x, int y, int w, int h, const void *data,
     int st = uzlib_uncompress(&decomp);
     if (st == TINF_DONE) break;  // all OK
     if (st < 0) break;           // error
-    const int px = pos % w;
-    const int py = pos / w;
+    const int px = (pos * 2) % w;
+    const int py = (pos * 2) / w;
     if (px >= x0 && px <= x1 && py >= y0 && py <= y1) {
       PIXELDATA(colortable[decomp_out >> 4]);
       PIXELDATA(colortable[decomp_out & 0x0F]);
