@@ -431,27 +431,35 @@ bool display_toif_info(const uint8_t *data, uint32_t len, uint16_t *out_w,
   return true;
 }
 
-#if defined TREZOR_MODEL_T
+#if defined TREZOR_MODEL_T || defined TREZOR_MODEL_R
 #include "loader.h"
+#ifdef TREZOR_MODEL_R
+#define LOADER_SIZE_ADJ 3
+#else
+#define LOADER_SIZE_ADJ 1
+#endif
 #endif
 
 void display_loader(uint16_t progress, bool indeterminate, int yoffset,
                     uint16_t fgcolor, uint16_t bgcolor, const uint8_t *icon,
                     uint32_t iconlen, uint16_t iconfgcolor) {
-#if defined TREZOR_MODEL_T
+#if defined TREZOR_MODEL_T || defined TREZOR_MODEL_R
+
+  int tmp_img_loader_size = img_loader_size / LOADER_SIZE_ADJ;
+
   uint16_t colortable[16] = {0}, iconcolortable[16] = {0};
   set_color_table(colortable, fgcolor, bgcolor);
   if (icon) {
     set_color_table(iconcolortable, iconfgcolor, bgcolor);
   }
-  if ((DISPLAY_RESY / 2 - img_loader_size + yoffset < 0) ||
-      (DISPLAY_RESY / 2 + img_loader_size - 1 + yoffset >= DISPLAY_RESY)) {
+  if ((DISPLAY_RESY / 2 - tmp_img_loader_size + yoffset < 0) ||
+      (DISPLAY_RESY / 2 + tmp_img_loader_size - 1 + yoffset >= DISPLAY_RESY)) {
     return;
   }
-  display_set_window(DISPLAY_RESX / 2 - img_loader_size,
-                     DISPLAY_RESY / 2 - img_loader_size + yoffset,
-                     DISPLAY_RESX / 2 + img_loader_size - 1,
-                     DISPLAY_RESY / 2 + img_loader_size - 1 + yoffset);
+  display_set_window(DISPLAY_RESX / 2 - tmp_img_loader_size,
+                     DISPLAY_RESY / 2 - tmp_img_loader_size + yoffset,
+                     DISPLAY_RESX / 2 + tmp_img_loader_size - 1,
+                     DISPLAY_RESY / 2 + tmp_img_loader_size - 1 + yoffset);
   uint8_t icondata[(LOADER_ICON_SIZE * LOADER_ICON_SIZE) / 2] = {0};
   if (icon && memcmp(icon, "TOIg", 4) == 0 &&
       LOADER_ICON_SIZE == *(uint16_t *)(icon + 4) &&
@@ -466,33 +474,33 @@ void display_loader(uint16_t progress, bool indeterminate, int yoffset,
   } else {
     icon = NULL;
   }
-  for (int y = 0; y < img_loader_size * 2; y++) {
-    for (int x = 0; x < img_loader_size * 2; x++) {
+  for (int y = 0; y < tmp_img_loader_size * 2; y++) {
+    for (int x = 0; x < tmp_img_loader_size * 2; x++) {
       int mx = x, my = y;
       uint16_t a = 0;
-      if ((mx >= img_loader_size) && (my >= img_loader_size)) {
-        mx = img_loader_size * 2 - 1 - x;
-        my = img_loader_size * 2 - 1 - y;
-        a = 499 - (img_loader[my][mx] >> 8);
-      } else if (mx >= img_loader_size) {
-        mx = img_loader_size * 2 - 1 - x;
-        a = img_loader[my][mx] >> 8;
-      } else if (my >= img_loader_size) {
-        my = img_loader_size * 2 - 1 - y;
-        a = 500 + (img_loader[my][mx] >> 8);
+      if ((mx >= tmp_img_loader_size) && (my >= tmp_img_loader_size)) {
+        mx = tmp_img_loader_size * 2 - 1 - x;
+        my = tmp_img_loader_size * 2 - 1 - y;
+        a = 499 - (img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] >> 8);
+      } else if (mx >= tmp_img_loader_size) {
+        mx = tmp_img_loader_size * 2 - 1 - x;
+        a = img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] >> 8;
+      } else if (my >= tmp_img_loader_size) {
+        my = tmp_img_loader_size * 2 - 1 - y;
+        a = 500 + (img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] >> 8);
       } else {
-        a = 999 - (img_loader[my][mx] >> 8);
+        a = 999 - (img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] >> 8);
       }
 // inside of circle - draw glyph
 #define LOADER_ICON_CORNER_CUT 2
 #define LOADER_INDETERMINATE_WIDTH 100
       if (icon &&
           mx + my > (((LOADER_ICON_SIZE / 2) + LOADER_ICON_CORNER_CUT) * 2) &&
-          mx >= img_loader_size - (LOADER_ICON_SIZE / 2) &&
-          my >= img_loader_size - (LOADER_ICON_SIZE / 2)) {
-        int i =
-            (x - (img_loader_size - (LOADER_ICON_SIZE / 2))) +
-            (y - (img_loader_size - (LOADER_ICON_SIZE / 2))) * LOADER_ICON_SIZE;
+          mx >= tmp_img_loader_size - (LOADER_ICON_SIZE / 2) &&
+          my >= tmp_img_loader_size - (LOADER_ICON_SIZE / 2)) {
+        int i = (x - (tmp_img_loader_size - (LOADER_ICON_SIZE / 2))) +
+                (y - (tmp_img_loader_size - (LOADER_ICON_SIZE / 2))) *
+                    LOADER_ICON_SIZE;
         uint8_t c = 0;
         if (i % 2) {
           c = icon[i / 2] & 0x0F;
@@ -507,15 +515,19 @@ void display_loader(uint16_t progress, bool indeterminate, int yoffset,
               (progress > a) ? (progress - a) : (1000 + progress - a);
           if (diff < LOADER_INDETERMINATE_WIDTH ||
               diff > 1000 - LOADER_INDETERMINATE_WIDTH) {
-            c = (img_loader[my][mx] & 0x00F0) >> 4;
+            c = (img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] &
+                 0x00F0) >>
+                4;
           } else {
-            c = img_loader[my][mx] & 0x000F;
+            c = img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] & 0x000F;
           }
         } else {
           if (progress > a) {
-            c = (img_loader[my][mx] & 0x00F0) >> 4;
+            c = (img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] &
+                 0x00F0) >>
+                4;
           } else {
-            c = img_loader[my][mx] & 0x000F;
+            c = img_loader[my * LOADER_SIZE_ADJ][mx * LOADER_SIZE_ADJ] & 0x000F;
           }
         }
         PIXELDATA(colortable[c]);
