@@ -93,7 +93,7 @@ void PIXELDATA(uint16_t c) {
   }
 }
 
-static void display_reset_state() {
+static void display_reset_state(void) {
   memset(DISPLAY_STATE.RAM, 0, sizeof(DISPLAY_STATE.RAM));
   DISPLAY_STATE.row = 0;
   DISPLAY_STATE.col = 0;
@@ -158,7 +158,7 @@ static void display_set_backlight(int val) {
   CMD(val & 0xFF);
 }
 
-static void send_init_seq_SH1107() {
+static void send_init_seq_SH1107(void) {
   // Display OFF
   CMD(0xAE);
 
