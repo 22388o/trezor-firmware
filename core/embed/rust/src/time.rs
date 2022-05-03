@@ -3,7 +3,6 @@ use core::{
     ops::{Div, Mul},
 };
 
-use crate::micropython::time;
 
 const MILLIS_PER_SEC: u32 = 1000;
 
@@ -79,52 +78,6 @@ const MAX_DIFFERENCE_IN_MILLIS: u32 = u32::MAX / 2;
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Instant {
     millis: u32,
-}
-
-impl Instant {
-    pub fn now() -> Self {
-        // TODO: We should move this to `micropython::time`.
-        Self {
-            millis: time::ticks_ms(),
-        }
-    }
-
-    pub fn saturating_duration_since(self, earlier: Self) -> Duration {
-        self.checked_duration_since(earlier)
-            .unwrap_or(Duration::ZERO)
-    }
-
-    pub fn checked_duration_since(self, earlier: Self) -> Option<Duration> {
-        if self >= earlier {
-            Some(Duration::from_millis(
-                self.millis.wrapping_sub(earlier.millis),
-            ))
-        } else {
-            None
-        }
-    }
-
-    pub fn checked_add(self, duration: Duration) -> Option<Self> {
-        let add_millis = duration.to_millis();
-        if add_millis <= MAX_DIFFERENCE_IN_MILLIS {
-            Some(Self {
-                millis: self.millis.wrapping_add(add_millis),
-            })
-        } else {
-            None
-        }
-    }
-
-    pub fn checked_sub(self, duration: Duration) -> Option<Self> {
-        let sub_millis = duration.to_millis();
-        if sub_millis <= MAX_DIFFERENCE_IN_MILLIS {
-            Some(Self {
-                millis: self.millis.wrapping_sub(sub_millis),
-            })
-        } else {
-            None
-        }
-    }
 }
 
 impl PartialOrd for Instant {

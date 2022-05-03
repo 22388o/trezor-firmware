@@ -67,6 +67,21 @@ pub fn backlight(val: i32) -> i32 {
     unsafe { display_backlight(val) }
 }
 
+#[no_mangle]
+pub extern "C" fn text_rust(baseline_x: i32, baseline_y: i32, text: *const u8, text_len: i32, font: i32, fgcolor: u16, bgcolor: u16) {
+    unsafe {
+        display_text(
+            baseline_x,
+            baseline_y,
+            text,
+            text_len,
+            font,
+            fgcolor,
+            bgcolor,
+        )
+    }
+}
+
 pub fn text(baseline_x: i32, baseline_y: i32, text: &str, font: i32, fgcolor: u16, bgcolor: u16) {
     unsafe {
         display_text(

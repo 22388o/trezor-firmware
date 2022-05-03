@@ -40,7 +40,9 @@
 
 #include "bootui.h"
 #include "messages.h"
-// #include "mpu.h"
+
+
+#include "rust_fn.h"
 
 const uint8_t BOOTLOADER_KEY_M = 2;
 const uint8_t BOOTLOADER_KEY_N = 3;
@@ -92,7 +94,7 @@ static void usb_init_all(secbool usb21_landing) {
   usb_start();
 }
 
-static secbool bootloader_usb_loop(const vendor_header *const vhdr,
+secbool bootloader_usb_loop(const vendor_header *const vhdr,
                                    const image_header *const hdr) {
   // if both are NULL, we don't have a firmware installed
   // let's show a webusb landing page in this case
@@ -196,7 +198,7 @@ secbool load_vendor_header_keys(const uint8_t *const data,
                             BOOTLOADER_KEYS, vhdr);
 }
 
-static secbool check_vendor_header_lock(const vendor_header *const vhdr) {
+secbool check_vendor_header_lock(const vendor_header *const vhdr) {
   uint8_t lock[FLASH_OTP_BLOCK_SIZE];
   ensure(flash_otp_read(FLASH_OTP_BLOCK_VENDOR_HEADER_LOCK, 0, lock,
                         FLASH_OTP_BLOCK_SIZE),
@@ -261,150 +263,174 @@ int main(void) {
 
   display_clear();
 
-  // delay to detect touch
-  uint32_t touched = 0;
-  for (int i = 0; i < 100; i++) {
-#if defined TREZOR_MODEL_T
-    touched = touch_is_detected() | touch_read();
-#elif defined TREZOR_MODEL_R
-    button_read();
-    if (button_state_left() == 1 && button_state_right() == 1) {
-      touched = 1;
-    }
-#endif
-    if (touched) {
-      break;
-    }
-    hal_delay(1);
-  }
+  text_rust(0, 16, "AAADDD", 6, FONT_NORMAL, 0xFFFF, 0x0000);
 
-  vendor_header vhdr;
-  image_header hdr;
-  secbool stay_in_bootloader = secfalse;  // flag to stay in bootloader
-
-  // detect whether the devices contains a valid firmware
-
-  secbool firmware_present =
-      load_vendor_header_keys((const uint8_t *)FIRMWARE_START, &vhdr);
-  if (sectrue == firmware_present) {
-    firmware_present = check_vendor_header_lock(&vhdr);
-  }
-  if (sectrue == firmware_present) {
-    firmware_present = load_image_header(
-        (const uint8_t *)(FIRMWARE_START + vhdr.hdrlen), FIRMWARE_IMAGE_MAGIC,
-        FIRMWARE_IMAGE_MAXSIZE, vhdr.vsig_m, vhdr.vsig_n, vhdr.vpub, &hdr);
-  }
-  if (sectrue == firmware_present) {
-    firmware_present =
-        check_image_contents(&hdr, IMAGE_HEADER_SIZE + vhdr.hdrlen,
-                             FIRMWARE_SECTORS, FIRMWARE_SECTORS_COUNT);
-  }
-
-  // start the bootloader if no or broken firmware found ...
-  if (firmware_present != sectrue) {
-    // show intro animation
-
-    // no ui_fadeout(); - we already start from black screen
-    ui_screen_welcome_first();
-    ui_fadein();
-
-    hal_delay(1000);
-
-    ui_fadeout();
-    ui_screen_welcome_second();
-    ui_fadein();
-
-    hal_delay(1000);
-
-    ui_fadeout();
-    ui_screen_welcome_third();
-    ui_fadein();
-
-    // erase storage
-    ensure(flash_erase_sectors(STORAGE_SECTORS, STORAGE_SECTORS_COUNT, NULL),
-           NULL);
-
-    // and start the usb loop
-    if (bootloader_usb_loop(NULL, NULL) != sectrue) {
-      return 1;
-    }
-  }
-
-  // ... or if user touched the screen on start
-  // ... or we have stay_in_bootloader flag to force it
-  if (touched || stay_in_bootloader == sectrue) {
-    // no ui_fadeout(); - we already start from black screen
-    ui_screen_firmware_info(&vhdr, &hdr);
-    ui_fadein();
-
-    // and start the usb loop
-    if (bootloader_usb_loop(&vhdr, &hdr) != sectrue) {
-      return 1;
-    }
-  }
-
-  ensure(load_vendor_header_keys((const uint8_t *)FIRMWARE_START, &vhdr),
-         "invalid vendor header");
-
-  ensure(check_vendor_header_lock(&vhdr), "unauthorized vendor keys");
-
-  ensure(load_image_header((const uint8_t *)(FIRMWARE_START + vhdr.hdrlen),
-                           FIRMWARE_IMAGE_MAGIC, FIRMWARE_IMAGE_MAXSIZE,
-                           vhdr.vsig_m, vhdr.vsig_n, vhdr.vpub, &hdr),
-         "invalid firmware header");
-
-  ensure(check_image_contents(&hdr, IMAGE_HEADER_SIZE + vhdr.hdrlen,
-                              FIRMWARE_SECTORS, FIRMWARE_SECTORS_COUNT),
-         "invalid firmware hash");
-
-  // if all VTRUST flags are unset = ultimate trust => skip the procedure
-
-  if ((vhdr.vtrust & VTRUST_ALL) != VTRUST_ALL) {
-    // ui_fadeout();  // no fadeout - we start from black screen
-    ui_screen_boot(&vhdr, &hdr);
-    ui_fadein();
-
-    int delay = (vhdr.vtrust & VTRUST_WAIT) ^ VTRUST_WAIT;
-    if (delay > 1) {
-      while (delay > 0) {
-        ui_screen_boot_wait(delay);
-        hal_delay(1000);
-        delay--;
-      }
-    } else if (delay == 1) {
-      hal_delay(1000);
-    }
-
-    if ((vhdr.vtrust & VTRUST_CLICK) == 0) {
-      ui_screen_boot_click();
-#if defined TREZOR_MODEL_T
-      touch_click();
-#elif defined TREZOR_MODEL_1 || defined TREZOR_MODEL_R
-      for (;;) {
-        button_read();
-        if (button_state_left() != 0 && button_state_right() != 0) {
-          break;
-        }
-      }
-      for (;;) {
-        button_read();
-        if (button_state_left() != 1 && button_state_right() != 1) {
-          break;
-        }
-      }
-#else
-#error Unknown Trezor model
-#endif
-    }
-
-    ui_fadeout();
-  }
-
-  // mpu_config_firmware();
-  // jump_to_unprivileged(FIRMWARE_START + vhdr.hdrlen + IMAGE_HEADER_SIZE);
-
-  mpu_config_off();
-  jump_to(FIRMWARE_START + vhdr.hdrlen + IMAGE_HEADER_SIZE);
+//
+//  // delay to detect touch
+//  uint32_t touched = 0;
+//  for (int i = 0; i < 100; i++) {
+//#if defined TREZOR_MODEL_T
+//    touched = touch_is_detected() | touch_read();
+//#elif defined TREZOR_MODEL_R
+//    button_read();
+//    if (button_state_left() == 1 && button_state_right() == 1) {
+//      touched = 1;
+//    }
+//#endif
+//    if (touched) {
+//      break;
+//    }
+//    hal_delay(1);
+//  }
+//
+//  vendor_header vhdr;
+//  image_header hdr;
+//  secbool stay_in_bootloader = secfalse;  // flag to stay in bootloader
+//
+//  // detect whether the devices contains a valid firmware
+//
+//  secbool firmware_present =
+//      load_vendor_header_keys((const uint8_t *)FIRMWARE_START, &vhdr);
+//  if (sectrue == firmware_present) {
+//    firmware_present = check_vendor_header_lock(&vhdr);
+//  }
+//  if (sectrue == firmware_present) {
+//    firmware_present = load_image_header(
+//        (const uint8_t *)(FIRMWARE_START + vhdr.hdrlen), FIRMWARE_IMAGE_MAGIC,
+//        FIRMWARE_IMAGE_MAXSIZE, vhdr.vsig_m, vhdr.vsig_n, vhdr.vpub, &hdr);
+//  }
+//  if (sectrue == firmware_present) {
+//    firmware_present =
+//        check_image_contents(&hdr, IMAGE_HEADER_SIZE + vhdr.hdrlen,
+//                             FIRMWARE_SECTORS, FIRMWARE_SECTORS_COUNT);
+//  }
+//
+//  // start the bootloader if no or broken firmware found ...
+//  if (firmware_present != sectrue) {
+//    // show intro animation
+//
+//    // no ui_fadeout(); - we already start from black screen
+//    ui_screen_welcome_first();
+//    ui_fadein();
+//
+//    void (*screens[3])(void) = {&ui_screen_welcome_first,
+//                                &ui_screen_welcome_second,
+//                                &ui_screen_welcome_third};
+//    int screen_idx = 0;
+//
+//    while(true){
+//      uint32_t button_event = button_read();
+//
+//      if (button_event == (BTN_EVT_DOWN | BTN_LEFT)){
+//        screen_idx--;
+//        if (screen_idx < 0) {
+//          screen_idx = 2;
+//        }
+//        display_start_prep();
+//        screens[screen_idx]();
+//        display_execute_prep(TRANSITION_SLIDE_LEFT);
+//
+//      }
+//      if (button_event == (BTN_EVT_DOWN | BTN_RIGHT)){
+//        screen_idx++;
+//        if (screen_idx > 2) {
+//          screen_idx = 0;
+//        }
+//        display_start_prep();
+//        screens[screen_idx]();
+//        display_execute_prep(TRANSITION_SLIDE_RIGHT);
+//      }
+//
+//      if (button_state_left() && button_state_right()){
+//        break;
+//      }
+//    }
+//
+//    // erase storage
+//    ensure(flash_erase_sectors(STORAGE_SECTORS, STORAGE_SECTORS_COUNT, NULL),
+//           NULL);
+//
+//    // and start the usb loop
+//    if (bootloader_usb_loop(NULL, NULL) != sectrue) {
+//      return 1;
+//    }
+//  }
+//
+//  // ... or if user touched the screen on start
+//  // ... or we have stay_in_bootloader flag to force it
+//  if (touched || stay_in_bootloader == sectrue) {
+//    // no ui_fadeout(); - we already start from black screen
+//    ui_screen_firmware_info(&vhdr, &hdr);
+//    ui_fadein();
+//
+//    // and start the usb loop
+//    if (bootloader_usb_loop(&vhdr, &hdr) != sectrue) {
+//      return 1;
+//    }
+//  }
+//
+//  ensure(load_vendor_header_keys((const uint8_t *)FIRMWARE_START, &vhdr),
+//         "invalid vendor header");
+//
+//  ensure(check_vendor_header_lock(&vhdr), "unauthorized vendor keys");
+//
+//  ensure(load_image_header((const uint8_t *)(FIRMWARE_START + vhdr.hdrlen),
+//                           FIRMWARE_IMAGE_MAGIC, FIRMWARE_IMAGE_MAXSIZE,
+//                           vhdr.vsig_m, vhdr.vsig_n, vhdr.vpub, &hdr),
+//         "invalid firmware header");
+//
+//  ensure(check_image_contents(&hdr, IMAGE_HEADER_SIZE + vhdr.hdrlen,
+//                              FIRMWARE_SECTORS, FIRMWARE_SECTORS_COUNT),
+//         "invalid firmware hash");
+//
+//  // if all VTRUST flags are unset = ultimate trust => skip the procedure
+//
+//  if ((vhdr.vtrust & VTRUST_ALL) != VTRUST_ALL) {
+//    // ui_fadeout();  // no fadeout - we start from black screen
+//    ui_screen_boot(&vhdr, &hdr);
+//    ui_fadein();
+//
+//    int delay = (vhdr.vtrust & VTRUST_WAIT) ^ VTRUST_WAIT;
+//    if (delay > 1) {
+//      while (delay > 0) {
+//        ui_screen_boot_wait(delay);
+//        hal_delay(1000);
+//        delay--;
+//      }
+//    } else if (delay == 1) {
+//      hal_delay(1000);
+//    }
+//
+//    if ((vhdr.vtrust & VTRUST_CLICK) == 0) {
+//      ui_screen_boot_click();
+//#if defined TREZOR_MODEL_T
+//      touch_click();
+//#elif defined TREZOR_MODEL_1 || defined TREZOR_MODEL_R
+//      for (;;) {
+//        button_read();
+//        if (button_state_left() != 0 && button_state_right() != 0) {
+//          break;
+//        }
+//      }
+//      for (;;) {
+//        button_read();
+//        if (button_state_left() != 1 && button_state_right() != 1) {
+//          break;
+//        }
+//      }
+//#else
+//#error Unknown Trezor model
+//#endif
+//    }
+//
+//    ui_fadeout();
+//  }
+//
+//  // mpu_config_firmware();
+//  // jump_to_unprivileged(FIRMWARE_START + vhdr.hdrlen + IMAGE_HEADER_SIZE);
+//
+//  mpu_config_off();
+//  jump_to(FIRMWARE_START + vhdr.hdrlen + IMAGE_HEADER_SIZE);
 
   return 0;
 }
