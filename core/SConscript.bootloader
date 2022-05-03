@@ -102,7 +102,6 @@ SOURCE_TREZORHAL = [
     'embed/trezorhal/rng.c',
     'embed/trezorhal/stm32.c',
     'embed/trezorhal/systick.c',
-    'embed/trezorhal/touch.c',
     'embed/trezorhal/usb.c',
     'embed/trezorhal/usbd_conf.c',
     'embed/trezorhal/usbd_core.c',
@@ -114,6 +113,8 @@ SOURCE_TREZORHAL = [
 
 if TREZOR_MODEL in ('1', 'R'):
     SOURCE_TREZORHAL.append('embed/trezorhal/button.c')
+if TREZOR_MODEL in ('T',):
+    SOURCE_TREZORHAL.append('embed/trezorhal/touch.c')
 
 
 env = Environment(ENV=os.environ, CFLAGS='%s -DPRODUCTION=%s' % (ARGUMENTS.get('CFLAGS', ''), ARGUMENTS.get('PRODUCTION', '0')))
