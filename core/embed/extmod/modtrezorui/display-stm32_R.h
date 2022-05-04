@@ -163,6 +163,15 @@ void display_trans_slide_left(int step, int delay_ms) {
   }
 }
 
+void display_trans_fast(void) {
+  for (int y = 0; y < (DISPLAY_RESY / 8); y++) {
+    display_set_page_and_col(y, 0);
+    for (int x = 0; x < DISPLAY_RESX; x++) {
+      DATA(DISPLAY_STATE.RAM_PREP[y][x]);
+    }
+  }
+}
+
 void display_execute_prep(transition_type_t transition) {
   DISPLAY_STATE.prep = true;
 
@@ -170,9 +179,12 @@ void display_execute_prep(transition_type_t transition) {
     case TRANSITION_SLIDE_RIGHT:
       display_trans_slide_right(1, 5);
       break;
-    default:
     case TRANSITION_SLIDE_LEFT:
       display_trans_slide_left(1, 5);
+      break;
+    default:
+    case TRANSITION_FAST:
+      display_trans_fast();
       break;
   }
 
