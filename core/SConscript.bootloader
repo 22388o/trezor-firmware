@@ -56,6 +56,24 @@ SOURCE_MOD += [
     'vendor/micropython/lib/uzlib/tinflate.c',
 ]
 
+
+# rust mods
+SOURCE_MOD_RUST = [
+    'embed/extmod/rustmods/modtrezorproto.c',
+]
+
+
+# modutime
+SOURCE_MOD_RUST += [
+    'embed/extmod/modutime.c',
+]
+
+SOURCE_MICROPYTHON = [
+    'vendor/micropython/py/objtype.c',
+]
+
+
+
 SOURCE_STMHAL = [
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c',
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c',
@@ -117,9 +135,16 @@ if TREZOR_MODEL in ('T',):
     SOURCE_TREZORHAL.append('embed/trezorhal/touch.c')
 
 
+SOURCE_QSTR = SOURCE_MOD + SOURCE_MOD_RUST + SOURCE_MICROPYTHON
+
 env = Environment(ENV=os.environ, CFLAGS='%s -DPRODUCTION=%s' % (ARGUMENTS.get('CFLAGS', ''), ARGUMENTS.get('PRODUCTION', '0')))
 
+env.Tool('micropython')
+
 env.Replace(
+    CAT='cat',
+    DD='dd',
+    SED='sed',
     AS='arm-none-eabi-as',
     AR='arm-none-eabi-ar',
     CC='arm-none-eabi-gcc',
@@ -163,6 +188,7 @@ env.Replace(
         'embed/bootloader/protob',
         'embed/trezorhal',
         'embed/extmod/modtrezorui',
+        'vendor/micropython',
         'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Inc',
         'vendor/micropython/lib/stm32lib/CMSIS/STM32F4xx/Include',
         'vendor/micropython/lib/cmsis/inc',
@@ -182,14 +208,14 @@ env.Replace(
 
 env.Replace(
     HEADERTOOL='tools/headertool.py',
+    PYTHON='python',
+    MAKEQSTRDATA='$PYTHON vendor/micropython/py/makeqstrdata.py',
+    MAKEVERSIONHDR='$PYTHON vendor/micropython/py/makeversionhdr.py',
+    MAKEMODULEDEFS='$PYTHON vendor/micropython/py/makemoduledefs.py',
+    MPY_TOOL='$PYTHON vendor/micropython/tools/mpy-tool.py',
+    MPY_CROSS='vendor/micropython/mpy-cross/mpy-cross -O' + '0',
+    PB2PY='$PYTHON ../common/protob/pb2py',
 )
-
-
-
-env.Tool('micropython')
-
-
-SOURCE_QSTR = SOURCE_MOD
 
 #
 # Qstrings
@@ -233,7 +259,7 @@ protobuf_blobs = env.Command(
         f'rust/proto_wire.data',
     ],
     source=PROTO_SOURCES,
-    action='$PB2PY --bitcoin-only=1 --blob-outdir ${TARGET.dir} $SOURCES --qstr-defs build/firmware/genhdr/qstrdefs.generated.h',
+    action='$PB2PY --bitcoin-only=1 --blob-outdir ${TARGET.dir} $SOURCES --qstr-defs build/bootloader/genhdr/qstrdefs.generated.h',
 )
 env.Depends(protobuf_blobs, qstr_generated)
 
@@ -266,10 +292,10 @@ rust = env.Command(
     target=RUST_LIBPATH,
     source='',
     action=cargo_build(), )
+env.Depends(rust, protobuf_blobs)
 
-#env.Depends(rust, protobuf_blobs)
-
-env.Replace(LINKFLAGS2=f' -L{RUST_LIBDIR} -l{RUST_LIB}')
+env.Append(LINKFLAGS=f' -L{RUST_LIBDIR}')
+env.Append(LINKFLAGS=f' -l{RUST_LIB}')
 
 #
 # Program objects
@@ -287,7 +313,7 @@ program_elf = env.Command(
     target='bootloader.elf',
     source=obj_program,
     action=
-    '$LINK -o $TARGET $CCFLAGS $CFLAGS $LINKFLAGS $SOURCES -lc_nano -lgcc $LINKFLAGS2 ',
+    '$LINK -o $TARGET $CCFLAGS $CFLAGS $SOURCES $LINKFLAGS -lc_nano -lm -lgcc',
 )
 
 env.Depends(program_elf, rust)
