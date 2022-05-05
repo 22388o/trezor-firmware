@@ -42,4 +42,5 @@ static void _librust_qstrs(void) {
   MP_QSTR_warning;
   MP_QSTR_allow_cancel;
   MP_QSTR_max_len;
+  MP_QSTR_shuffle;
 }
