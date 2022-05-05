@@ -6,6 +6,7 @@ pub mod component;
 pub mod display;
 pub mod event;
 pub mod geometry;
+pub mod layout;
 
 #[cfg(feature = "model_t1")]
 pub mod model_t1;

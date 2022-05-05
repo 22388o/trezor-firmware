@@ -1,4 +1,4 @@
-use crate::{time::Duration, trezorhal::display};
+use crate::{micropython::time, time::Duration, trezorhal::display};
 
 #[cfg(feature = "model_t1")]
 use crate::ui::model_t1::constant;
@@ -25,10 +25,12 @@ pub fn fade_backlight(target: i32) {
     if current < target {
         for val in (current..target).step_by(BACKLIGHT_STEP) {
             set_backlight(val);
+            time::sleep(BACKLIGHT_DELAY);
         }
     } else {
         for val in (target..current).rev().step_by(BACKLIGHT_STEP) {
             set_backlight(val);
+            time::sleep(BACKLIGHT_DELAY);
         }
     }
 }

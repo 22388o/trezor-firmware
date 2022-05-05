@@ -22,12 +22,17 @@ impl<T> Animation<T> {
         }
     }
 
+    /// Time elapsed between `now` and the starting instant.
+    pub fn elapsed(&self, now: Instant) -> Duration {
+        now.saturating_duration_since(self.started)
+    }
+
     /// Value of this animation at `now` instant.
-    pub fn value(&self, _now: Instant) -> T
+    pub fn value(&self, now: Instant) -> T
     where
         T: Lerp,
     {
-        let factor = 0.0;
+        let factor = self.elapsed(now) / self.duration;
         T::lerp(self.from, self.to, factor)
     }
 
@@ -42,8 +47,9 @@ impl<T> Animation<T> {
     }
 
     /// Seek the animation forward by moving the starting instant back in time.
-    pub fn seek_forward(&mut self, _offset: Duration) {
-        if false {
+    pub fn seek_forward(&mut self, offset: Duration) {
+        if let Some(started) = self.started.checked_sub(offset) {
+            self.started = started;
         } else {
             // Duration is too large to be added to an `Instant`.
             #[cfg(feature = "ui_debug")]
