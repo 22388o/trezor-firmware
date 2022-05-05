@@ -263,7 +263,8 @@ int main(void) {
 
   display_clear();
 
-  text_rust(0, 16, "AAADDD", 6, FONT_NORMAL, 0xFFFF, 0x0000);
+  //text_rust(0, 16, "AAADDD", 6, FONT_NORMAL, 0xFFFF, 0x0000);
+  hello_world("Bootloader!!!");
 
 //
 //  // delay to detect touch
