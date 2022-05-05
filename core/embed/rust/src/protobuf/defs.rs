@@ -114,7 +114,7 @@ macro_rules! proto_def_path {
     ($filename:expr) => {
         concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../build/firmware/rust/",
+            "/../../build/bootloader/rust/",
             $filename
         )
     };
