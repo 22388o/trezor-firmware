@@ -13,6 +13,8 @@ model_t1 = []
 model_tr = []
 ui = []
 ui_debug = []
+firmware = []
+bootloader = []
 test = ["cc", "glob"]
 
 [lib]
