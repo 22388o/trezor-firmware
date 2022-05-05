@@ -1,8 +1,8 @@
 use super::{
     component::{ButtonPage, Frame},
-    theme,
+    theme, constant,
 };
-use crate::ui::component::text::paragraphs::Paragraphs;
+use crate::{ui::component::text::paragraphs::Paragraphs, trezorhal::display};
 use crate::ui::component::Component;
 use cstr_core::CStr;
 
@@ -18,5 +18,6 @@ extern "C" fn hello_world(text: *const cty::c_char) {
             theme::BG,
         ),
     );
+    frame.place(constant::screen());
     frame.paint();
 }
