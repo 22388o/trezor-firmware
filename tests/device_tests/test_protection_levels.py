@@ -297,7 +297,7 @@ def test_sign_message(client: Client):
                 _pin_request(client),
                 messages.PassphraseRequest,
                 messages.ButtonRequest,
-                messages.ButtonRequest,
+                (client.features.model in ("T", "1"), messages.ButtonRequest),
                 messages.MessageSignature,
             ]
         )
@@ -340,7 +340,7 @@ def test_verify_message_t2(client: Client):
                 _pin_request(client),
                 messages.ButtonRequest,
                 messages.ButtonRequest,
-                messages.ButtonRequest,
+                (client.features.model in ("T",), messages.ButtonRequest),
                 messages.Success,
             ]
         )

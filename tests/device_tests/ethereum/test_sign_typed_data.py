@@ -24,8 +24,7 @@ from ...common import parametrize_using_common_fixtures
 
 SHOW_MORE = (143, 167)
 
-# Skipping TR just for now, there are some issue with "show more" dialogue
-pytestmark = [pytest.mark.altcoin, pytest.mark.ethereum, pytest.mark.skip_tr]
+pytestmark = [pytest.mark.altcoin, pytest.mark.ethereum]
 
 
 @pytest.mark.skip_t1
@@ -144,6 +143,9 @@ def input_flow_cancel(client: Client):
 
 @pytest.mark.skip_t1
 def test_ethereum_sign_typed_data_show_more_button(client: Client):
+    if client.features.model == "R":
+        pytest.fail("would freeze at Show more dialogue")
+
     with client:
         client.watch_layout()
         client.set_input_flow(input_flow_show_more(client))

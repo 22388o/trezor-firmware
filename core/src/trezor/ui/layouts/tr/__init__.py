@@ -184,6 +184,30 @@ async def confirm(
     )
 
 
+async def get_bool(
+    ctx: wire.GenericContext,
+    br_type: str,
+    title: str,
+    data: str,
+    description: str | None = None,
+    br_code: ButtonRequestType = ButtonRequestType.Other,
+) -> bool:
+    result = await interact(
+        ctx,
+        _RustLayout(
+            trezorui2.confirm_text(
+                title=title,
+                data=data,
+                description=description,
+            )
+        ),
+        br_type=br_type,
+        br_code=br_code,
+    )
+
+    return result is trezorui2.CONFIRMED
+
+
 async def show_success(
     ctx: wire.GenericContext,
     br_type: str,
@@ -256,9 +280,15 @@ async def confirm_output(
     ctx: wire.GenericContext,
     address: str,
     amount: str,
+    subtitle: str = "",
     font_amount: int = ui.NORMAL,  # TODO cleanup @ redesign
     title: str = "Confirm sending",
+    width_paginated: int = 0,
+    width: int = 0,
     icon: str = ui.ICON_SEND,
+    to_str: str = "\nto\n",
+    to_paginated: bool = True,
+    color_to: str = "",
     br_code: ButtonRequestType = ButtonRequestType.ConfirmOutput,
 ) -> Awaitable[None]:
     return await confirm(
@@ -266,7 +296,7 @@ async def confirm_output(
         br_type="confirm_output",
         title=title,
         data=f"Send {amount} to {address}?",
-        description="",
+        description=subtitle,
         br_code=br_code,
     )
 
@@ -491,7 +521,8 @@ async def confirm_replacement(
         br_type="confirm_replacement",
         title="Confirm replacement",
         data=f"Replace {txid}?",
-        description="",
+        description=description,
+        br_code=ButtonRequestType.SignTx,
     )
 
 
@@ -567,20 +598,13 @@ async def confirm_signverify(
 
 # TODO cleanup @ redesign
 async def confirm_backup(ctx: wire.GenericContext) -> bool:
-    result = await interact(
-        ctx,
-        _RustLayout(
-            trezorui2.confirm_text(
-                title="BACKUP STARTING",
-                data="Backup will start",
-                description="",
-            )
-        ),
+    return await get_bool(
+        ctx=ctx,
+        title="BACKUP STARTING",
+        data="Backup will start",
         br_type="confirm_backup",
         br_code=ButtonRequestType.ResetDevice,
     )
-
-    return result is trezorui2.CONFIRMED
 
 
 async def confirm_path_warning(
@@ -629,7 +653,13 @@ async def should_show_more(
     icon: str = ui.ICON_DEFAULT,
     icon_color: int = ui.ORANGE_ICON,
 ) -> bool:
-    return False
+    return await get_bool(
+        ctx=ctx,
+        title=title,
+        data="Should show more?",
+        br_type=br_type,
+        br_code=br_code,
+    )
 
 
 async def confirm_payment_request(
@@ -669,3 +699,7 @@ async def _show_modal(
         description=subheader,
         br_code=br_code,
     )
+
+
+async def request_passphrase_on_device(ctx: wire.GenericContext, max_len: int) -> str:
+    return NotImplementedError
