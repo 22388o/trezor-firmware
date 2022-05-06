@@ -12,8 +12,8 @@ async def confirm_webauthn(
     info: ConfirmInfo,
     pageable: Pageable | None = None,
 ) -> bool:
-    return True
+    raise NotImplementedError
 
 
 async def confirm_webauthn_reset() -> bool:
-    return True
+    raise NotImplementedError

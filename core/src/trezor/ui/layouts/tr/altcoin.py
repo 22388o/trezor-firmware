@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Awaitable
 
 from trezor.enums import ButtonRequestType
+
 from . import confirm
 
 if TYPE_CHECKING:

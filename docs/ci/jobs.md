@@ -164,70 +164,70 @@ See [docs/tests/ui-tests](../docs/tests/ui-tests.md) for more info.
 
 ### [core device R test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L127)
 
-### [core device asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L160)
+### [core device asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L158)
 
-### [core btconly device test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L177)
+### [core btconly device test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L175)
 Device tests excluding altcoins, only for BTC.
 
-### [core btconly device asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L197)
+### [core btconly device asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L195)
 
-### [core monero test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L217)
+### [core monero test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L215)
 Monero tests.
 
-### [core monero asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L236)
+### [core monero asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L234)
 
-### [core u2f test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L258)
+### [core u2f test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L256)
 Tests for U2F and HID.
 
-### [core u2f asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L277)
+### [core u2f asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L275)
 
-### [core fido2 test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L295)
+### [core fido2 test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L293)
 FIDO2 device tests.
 
-### [core fido2 asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L318)
+### [core fido2 asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L316)
 
-### [core click test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L338)
+### [core click test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L336)
 Click tests.
 See [docs/tests/click-tests](../docs/tests/click-tests.md) for more info.
 
-### [core click asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L355)
+### [core click asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L353)
 
-### [core upgrade test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L376)
+### [core upgrade test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L374)
 Upgrade tests.
 See [docs/tests/upgrade-tests](../docs/tests/upgrade-tests.md) for more info.
 
-### [core upgrade asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L395)
+### [core upgrade asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L393)
 
-### [core persistence test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L417)
+### [core persistence test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L415)
 Persistence tests.
 
-### [core persistence asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L433)
+### [core persistence asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L431)
 
-### [core hwi test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L451)
+### [core hwi test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L449)
 
-### [crypto test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L469)
+### [crypto test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L467)
 
-### [legacy device test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L500)
+### [legacy device test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L498)
 
-### [legacy asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L527)
+### [legacy asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L525)
 
-### [legacy btconly test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L539)
+### [legacy btconly test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L537)
 
-### [legacy btconly asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L559)
+### [legacy btconly asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L557)
 
-### [legacy upgrade test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L574)
+### [legacy upgrade test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L572)
 
-### [legacy upgrade asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L593)
+### [legacy upgrade asan test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L591)
 
-### [legacy hwi test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L614)
+### [legacy hwi test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L612)
 
-### [python test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L633)
+### [python test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L631)
 
-### [storage test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L662)
+### [storage test](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L660)
 
-### [core unix memory profiler](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L686)
+### [core unix memory profiler](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L684)
 
-### [connect test core](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L710)
+### [connect test core](https://github.com/trezor/trezor-firmware/blob/master/ci/test.yml#L708)
 
 ---
 ## TEST-HW stage - [test-hw.yml](../../ci/test-hw.yml)
