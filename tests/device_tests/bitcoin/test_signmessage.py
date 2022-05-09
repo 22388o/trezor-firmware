@@ -286,8 +286,7 @@ def test_signmessage_pagination(client: Client, message):
     # Czech characters seem to cause panic in R model
     if message.startswith("Příšerně") and client.features.model == "R":
         # Failing the test not to cause Rust panic, which would stop the emulator
-        # pytest.skip("R model does not support czech characters")
-        assert False
+        pytest.fail("R model does not support czech characters")
 
     message_read = ""
 
