@@ -239,7 +239,7 @@ async def confirm_reset_device(
         ctx=ctx,
         br_type="recover_device" if recovery else "setup_device",
         title="Recovery mode" if recovery else "Create new wallet",
-        data=f"{prompt}\n\nBy continuing you agree\nto\nhttps://trezor.io/tos",
+        data=f"{prompt}\n\nBy continuing you agree to\nhttps://trezor.io/tos",
         description="",
         br_code=ButtonRequestType.ProtectCall
         if recovery
@@ -485,7 +485,7 @@ async def confirm_properties(
         ctx=ctx,
         br_type=br_type,
         title=title,
-        data="\n\n".join(f"{name}\n{value}" for name, value in props),
+        data="\n\n".join(f"{name or ''}\n{value or ''}" for name, value in props),
         description="",
         br_code=br_code,
     )
@@ -518,7 +518,7 @@ async def confirm_metadata(
     icon_color: int = ui.GREEN,  # TODO cleanup @ redesign
     larger_vspace: bool = False,  # TODO cleanup @ redesign
 ) -> Awaitable[None]:
-    text = f"{content}\n{param}"
+    text = content.format(param)
     if not hide_continue:
         text += "\n\nContinue?"
     return await confirm(
