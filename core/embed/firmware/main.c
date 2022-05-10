@@ -58,12 +58,6 @@
 // from util.s
 extern void shutdown_privileged(void);
 
-__attribute__((noreturn)) void reboot_to_bootloader() {
-  jump_to(BOOTLOADER_START + IMAGE_HEADER_SIZE);
-  for (;;)
-    ;
-}
-
 int main(void) {
   random_delays_init();
 
@@ -132,8 +126,6 @@ int main(void) {
   ensure(sectrue * (zkp_context_init() == 0), NULL);
 #endif
 
-  svc_reboot_to_bootloader();
-
   printf("CORE: Preparing stack\n");
   // Stack limit should be less than real stack size, so we have a chance
   // to recover from limit hit.
@@ -200,6 +192,12 @@ void UsageFault_Handler(void) {
   error_shutdown("Internal error", "(UF)", NULL, NULL);
 }
 
+__attribute__((noreturn)) void reboot_to_bootloader() {
+  jump_to(BOOTLOADER_START + IMAGE_HEADER_SIZE);
+  for (;;)
+    ;
+}
+
 void SVC_C_Handler(uint32_t *stack) {
   uint8_t svc_number = ((uint8_t *)stack[6])[-2];
   switch (svc_number) {
@@ -226,7 +224,9 @@ void SVC_C_Handler(uint32_t *stack) {
       mpu_config_jump_to_bootloader();
       __asm__ volatile("msr control, %0" ::"r"(0x0));
       __asm__ volatile("isb");
-      // see stack layout in https://developer.arm.com/documentation/ka004005/latest
+      // See stack layout in https://developer.arm.com/documentation/ka004005/latest
+      // We are changing return address in PC to land into reboot to avoid any bug with ROP
+      // and raising privileges.
       stack[6] = (uintptr_t)reboot_to_bootloader;
       return;
     default:

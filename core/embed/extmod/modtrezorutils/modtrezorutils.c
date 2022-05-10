@@ -19,6 +19,7 @@
 
 #include "py/objstr.h"
 #include "py/runtime.h"
+#include "supervise.h"
 
 #include "version.h"
 
@@ -123,8 +124,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorutils_halt_obj, 0, 1,
 ///     Reboots to bootloader.
 ///     """
 STATIC mp_obj_t mod_trezorutils_reboot_to_bootloader() {
-  // actual reboot via trezorhal goes here:
-  ensure(secfalse, "reboot_to_bootloader");
+  svc_reboot_to_bootloader();
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_trezorutils_reboot_to_bootloader_obj,
