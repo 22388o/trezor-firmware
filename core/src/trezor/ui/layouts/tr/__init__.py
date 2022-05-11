@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     ExceptionType = BaseException | Type[BaseException]
 
 
-class _RustLayout(ui.Layout):
+class RustLayout(ui.Layout):
     # pylint: disable=super-init-not-called
     def __init__(self, layout: Any) -> None:
         self.layout = layout
@@ -132,7 +132,7 @@ async def confirm_action(
     await raise_if_cancelled(
         interact(
             ctx,
-            _RustLayout(
+            RustLayout(
                 trezorui2.confirm_action(
                     title=title,
                     action=action,
@@ -162,7 +162,7 @@ async def confirm_text(
 ) -> Any:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_text(
                 title=title,
                 data=data,
@@ -203,7 +203,7 @@ async def get_bool(
 ) -> bool:
     result = await interact(
         ctx,
-        _RustLayout(
+        RustLayout(
             trezorui2.confirm_text(
                 title=title,
                 data=data,
@@ -221,12 +221,13 @@ async def show_success(
     ctx: wire.GenericContext,
     br_type: str,
     content: str,
+    subheader: str = "",
 ) -> Awaitable[None]:
     return await confirm(
         ctx=ctx,
         br_type=br_type,
         title="Success",
-        data=content,
+        data=f"{subheader}\n\n{content}",
         description="",
         br_code=ButtonRequestType.Success,
     )
@@ -252,6 +253,8 @@ async def show_warning(
     br_type: str,
     content: str,
     header: str = "Warning",
+    subheader: str = "Subwarning",
+    button: str = "Button",
     br_code: ButtonRequestType = ButtonRequestType.Warning,
 ) -> Awaitable[None]:
     return await confirm(
@@ -403,7 +406,7 @@ async def request_pin_on_device(
 
     while True:
         result = await ctx.wait(
-            _RustLayout(
+            RustLayout(
                 trezorui2.request_pin(
                     prompt=prompt,
                     subprompt=subprompt,
