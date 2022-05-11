@@ -183,14 +183,23 @@ async def confirm_total(
     ctx: wire.Context,
     spending: int,
     fee: int,
+    fee_rate: float,
     coin: CoinInfo,
     amount_unit: AmountUnit,
 ) -> None:
+    fee_rate_str = ""
+
+    if fee_rate >= 0:
+        # Modify `fee_rate` for `format_amount` function (multiply by 10, because
+        # we only want to display 1 decimal digit and then get whole number)
+        fee_rate_multiplied = int(fee_rate * 10)
+        fee_rate_str = f"({format_amount(fee_rate_multiplied, 1)} sat/vB)"
+
     await layouts.confirm_total(
         ctx,
         total_amount=format_coin_amount(spending, coin, amount_unit),
         fee_amount=format_coin_amount(fee, coin, amount_unit),
-        fee_rate_amount=f"({format_amount(99, 0)} sat/B)",
+        fee_rate_amount=fee_rate_str,
     )
 
 
