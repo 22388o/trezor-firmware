@@ -103,7 +103,6 @@ class ContainerType(Generic[T]):
         return elems
 
 
-
 class MessageType:
     """
     Message composed of fields with specific types.
